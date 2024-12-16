@@ -12,7 +12,7 @@ source("load_libraries_abies.R")
 library(papeR)
 library(rtables) # https://rookie.rbind.io/post/making-summary-tables-in-r
 library(data.table) 
-library(postHoc) #https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
+library(postHoc) # https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
 library(scmamp)
 
 
@@ -252,7 +252,7 @@ res_knn_abiesGC=confusionMatrix(test_pred,factor(dati_test$Y))
 ################################################################################
 # testing stratification morfo seeds
 
-col_oneway_welch(Xseed, Yseed)
+col_oneway_welch(Xseed, Yseed) # by using matrixTests R package
 
 summarySE(Xseed,"length","Yseed")
 summarySE(Xseed,"mc","Yseed") 
@@ -296,6 +296,7 @@ ggord(model, Y[training.samples],
 
 #####################################################################
 # References
+# https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
 # https://www.geeksforgeeks.org/how-to-perform-post-hoc-test-for-kruskal-wallis-in-r/
 # https://cmdlinetips.com/2020/12/canonical-correlation-analysis-in-r/
 # https://www.r-bloggers.com/2021/05/linear-discriminant-analysis-in-r/
