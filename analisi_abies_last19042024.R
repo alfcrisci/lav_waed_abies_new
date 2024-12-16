@@ -1,7 +1,11 @@
+
+# install.packages(c("papeR","rtables","postHoc","scmamp")
+
 ################################################################################
 # load libraries & set working directory & set random seeds
 
-setwd("C:\\aaa_lavori\\lav_waed_abies")
+
+setwd("")
 
 source("load_libraries_abies.R")
 
