@@ -147,7 +147,7 @@ res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),
                             GG$CI,
                             groups=GG$Grouping,
                             test_sp=gsub("species","",row.names(GG$PvaluesMatrix)),
-                            GG$PvaluesMatrix,                    # kwAllPairsDunnTest(count ~ spray, data = InsectSprays,p.adjust.method = "bonferroni")
+                            GG$PvaluesMatrix,                    # kwAllPairsDunnTest(mat_final_rel[,i], ~ factor(mat_final_rel$species),p.adjust.method = "bonferroni")
                             ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species))) # by using postHoc R package Calculates all p-values of pairwise comparisons using a Kruskal-Wallis test
 
  
