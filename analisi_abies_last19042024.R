@@ -5,7 +5,7 @@
 # load libraries & set working directory & set random seeds
 
 
-setwd("")
+setwd("") # set up the directory
 
 source("load_libraries_abies.R")
 
@@ -60,6 +60,7 @@ nrow(dati_sel) #  170
 dati_sel_rel=100*dati_sel[,4:31]/dati_sel$`TOT_mono&sesqui`
 mat_final_rel=data.frame(species=dati_sel$Species,dati_sel_rel)
 write.xlsx(mat_final_rel,"dati_relativi_totali.xlsx",overwrite = T) 
+
  
 dati_monosesqui=cbind(100*dati_sel[,4:18]/dati_sel$TOT_Mono,
                       100*dati_sel[,19:31]/(dati_sel$`TOT_mono&sesqui`-dati_sel$TOT_Mono))
@@ -82,7 +83,7 @@ multiCol(dati_sel_rel, graf = TRUE)
 
 X=dati_sel_rel
 Y=dati_sel$Species
-#X=asin(sqrt(X/100))
+#X=asin(sqrt(X/100)) # optional arcsine trasformation
 
 
 Xseed=dati_seeds[,4:8]
@@ -119,6 +120,7 @@ a=col_kruskalwallis(X,Y)
 
 row.names(a)[which(a$pvalue<0.05)] # all coumpound discriminate!
 row.names(a)[which(a$pvalue>0.05)] 
+
 write.xlsx(data.frame(a,compound_terpene=row.names(a)),"test_kruskal.wallis.xlsx")
 
 ##########################################################################################################
@@ -133,12 +135,14 @@ res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),GG$CI,group
 j=j+1
 }
 res_df=do.call("rbind",res_posthoc)
+
 write.xlsx(res_df,"posthoc_kruskal.wallis.xlsx")
 
 ##############################################################################################
 # tables
 
 my_desc=psych::describeBy(mat_final_rel, mat_final_rel$species)
+
 readr::write_excel_csv2(rbindlist(my_desc, idcol = 'species'), file = 'summary_terpene_by_species.xlsx')
 
 
@@ -148,8 +152,11 @@ readr::write_excel_csv2(rbindlist(my_desc, idcol = 'species'), file = 'summary_t
 # boxplot main discriminant compounds
 
 dir.create("boxplot")
+
 setwd("boxplot")
+
 dati_sel_box=dati_sel_rel
+
 dati_sel_box$Species=factor(dati_sel$Species)
 dati_sel_box=janitor::clean_names(dati_sel_box)
 
@@ -163,7 +170,7 @@ ggsave(paste0("boxplot_",names(dati_sel_box)[i],".png"))
 
 setwd("..")
 
-
+###############################################################################################
 
 # my_plot_list=list(a,b,c)
 # ggexport(
@@ -176,7 +183,10 @@ setwd("..")
 # Ordination Supervised methods : LDA & & KNN
 
 # LDA
-# Prior probabilities of groups: the proportion of training observations in each group. For example, there are 31% of the training observations in the setosa group
+
+
+# Prior probabilities of groups: the proportion of training observations in each group. 
+# For example, there are 31% of the training observations in the setosa group
 # Group means: group center of gravity. Shows the mean of each variable in each group.
 # Coefficients of linear discriminants: Shows the linear combination of predictor variables that are used to form the LDA d
 
@@ -216,6 +226,7 @@ abies_lda %>%
   ggtitle("Standardized coefficient biplot of mediterranean Abies spp. ") +
   expand_limits(y = c(-3, 5))+
   labs(color = "Species")
+
 ggsave("LDA_biplot.png")
 
 ################################################################################
@@ -233,6 +244,8 @@ res_knn_abiesGC=confusionMatrix(test_pred,factor(dati_test$Y))
 
 
 ################################################################################
+# testing stratification morfo seeds
+
 col_oneway_welch(Xseed, Yseed)
 
 summarySE(Xseed,"length","Yseed")
@@ -244,17 +257,18 @@ X=Xseed
 Y=Yseed
 
 ################################################################################
-# PCA
+# PCA Unsupervised
 
 ord <- PCA(Xseed, graph = FALSE)
 ggord(ord, Yseed,arrow=NULL,txt=NULL)
 
 ################################################################################
-# linear DA 
+# linear DA Supervised
 
 heplots::boxM(X, Y)
 
 training.samples <- Y %>% createDataPartition(p = 0.8, list = FALSE)
+
 dati_train=X[training.samples, ]
 dati_test=X[-training.samples, ]
 dati_test$Y=Y[-training.samples]
@@ -275,13 +289,13 @@ ggord(model, Y[training.samples],
       obslab =F)
 
 #####################################################################
-# references
+# References
 # https://cmdlinetips.com/2020/12/canonical-correlation-analysis-in-r/
 # https://www.r-bloggers.com/2021/05/linear-discriminant-analysis-in-r/
 # https://vitalflux.com/pca-vs-lda-differences-plots-examples/
 # https://towardsai.net/p/data-science/lda-vs-pca
 # https://stats.stackexchange.com/questions/23353/pca-lda-cca-and-pls
 # https://www.geeksforgeeks.org/classifying-data-using-support-vector-machinessvms-in-r/
-#  https://mdatools.com/docs/pca.html
+# https://mdatools.com/docs/pca.html
 # https://rdrr.io/cran/mixOmics/man/plsda.html
 # http://mixomics.org/methods/spls-da/
