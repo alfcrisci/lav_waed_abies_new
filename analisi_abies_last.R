@@ -36,7 +36,7 @@ dati_seeds=read.xlsx("dati_abies_semi.xlsx",1) # seeds
 ################################################################################
 # row purging
 
-#dati_sel=dati_sel[-c(165,167,162,20,45),] 
+# dati_sel=dati_sel[-c(165,167,162,20,45),] 
 
 saveRDS(dati_sel,"dati_sel_abies.rds")
 
@@ -93,7 +93,7 @@ write.xlsx(list(data.frame(Y,X),data.frame(Yseed,Xseed)),"dati_PCA.xlsx")
 cat("\014") 
 
 #########################################################################################
-# PCA explore variable and outlier detection
+# PCA explore variable and outlier detection by using ordr R packages
 
 data_pca=data.frame(X,Species=Y)
 
