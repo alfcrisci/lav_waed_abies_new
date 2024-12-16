@@ -1,5 +1,5 @@
 
-# install.packages(c("papeR","rtables","postHoc","scmamp")
+# install.packages(c("papeR","rtables","postHoc","scmamp","PMCMRplus")
 
 ################################################################################
 # load libraries & set working directory & set random seeds
@@ -15,7 +15,7 @@ library(rtables) # https://rookie.rbind.io/post/making-summary-tables-in-r
 library(data.table) 
 library(postHoc) # https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
 library(scmamp)
-
+library(PMCMRplus)
 
 #######################################################################################################
 # set up seeds for reproducibility
