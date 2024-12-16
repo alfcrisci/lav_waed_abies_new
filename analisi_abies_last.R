@@ -116,7 +116,7 @@ ggsave("PCA_biplot.png")
 #########################################################################################
 # data selection by non parametric ANOVA ( optional) 
 
-a=col_kruskalwallis(X,Y)
+a=col_kruskalwallis(X,Y) # by using matrixTests R package
 
 row.names(a)[which(a$pvalue<0.05)] # all coumpound discriminate!
 row.names(a)[which(a$pvalue>0.05)] 
@@ -124,6 +124,7 @@ row.names(a)[which(a$pvalue>0.05)]
 write.xlsx(data.frame(a,compound_terpene=row.names(a)),"test_kruskal.wallis.xlsx")
 
 ##########################################################################################################
+# Posthoc analisys after general kruskalwallis test
 
 res_posthoc=list()
 j=1  
@@ -131,7 +132,12 @@ for ( i in 2:29) {
 formula_t=paste(names(mat_final_rel)[i], "~ species + 0")
 MM=glm(formula_t,  data = mat_final_rel)
 GG <- posthoc(MM)
-res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),GG$CI,groups=GG$Grouping,test_sp=gsub("species","",row.names(GG$PvaluesMatrix)),GG$PvaluesMatrix,ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species)))
+res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),
+                            GG$CI,
+                            groups=GG$Grouping,
+                            test_sp=gsub("species","",row.names(GG$PvaluesMatrix)),
+                            GG$PvaluesMatrix,
+                            ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species))) # by using postHoc R package Calculates all p-values of pairwise comparisons using a Kruskal-Wallis test
 j=j+1
 }
 res_df=do.call("rbind",res_posthoc)
@@ -290,6 +296,7 @@ ggord(model, Y[training.samples],
 
 #####################################################################
 # References
+# https://www.geeksforgeeks.org/how-to-perform-post-hoc-test-for-kruskal-wallis-in-r/
 # https://cmdlinetips.com/2020/12/canonical-correlation-analysis-in-r/
 # https://www.r-bloggers.com/2021/05/linear-discriminant-analysis-in-r/
 # https://vitalflux.com/pca-vs-lda-differences-plots-examples/
