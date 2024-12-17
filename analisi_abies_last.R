@@ -131,32 +131,44 @@ write.xlsx(data.frame(a,compound_terpene=row.names(a)),"test_kruskal.wallis.xlsx
 
 ##########################################################################################################
 # Posthoc analisys after general kruskal wallis testing
+##########################################################################################################
+# Posthoc analysis
 
 res_posthoc=list()
+res_posthoc_dunn=list()
+res_GG=list()
+
+#######################################################
 
 j=1  
-for ( i in 2:29) { # looping by data columns
- 
+
+for ( i in 2:29) { # run on the columns starting fron numeric values
+  
 formula_t=paste(names(mat_final_rel)[i], "~ species + 0")
- 
+
 MM=glm(formula_t,  data = mat_final_rel)
- 
+
 GG <- posthoc(MM)
- 
+
+
+res_posthoc_dunn[[j]]=paste0(names(mat_final_rel[i]),",",capture.output(summary(kwAllPairsDunnTest(mat_final_rel[,i], factor(mat_final_rel$species),p.adjust.method = "bonferroni")))[2:4])
+
 res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),
-                            GG$CI,
-                            groups=GG$Grouping,
+                            GG$CI,groups=GG$Grouping,
                             test_sp=gsub("species","",row.names(GG$PvaluesMatrix)),
-                            GG$PvaluesMatrix,                    # kwAllPairsDunnTest(mat_final_rel[,i], ~ factor(mat_final_rel$species),p.adjust.method = "bonferroni")
-                            ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species))) # by using postHoc R package Calculates all p-values of pairwise comparisons using a Kruskal-Wallis test
+                            GG$PvaluesMatrix,
+                            ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species))
+                            )
+res_GG[[j]]=GG
 
- 
- 
- j=j+1
+j=j+1
+
 }
-res_df=do.call("rbind",res_posthoc)
 
-write.xlsx(res_df,"posthoc_kruskal.wallis.xlsx")
+res_df=do.call("rbind",res_posthoc)
+res_df_dunn=do.call("rbind",res_posthoc_dunn)
+
+write.xlsx(list(res_df,res_df_dunn),"posthoc_kruskal.wallis.xlsx")
 
 ##############################################################################################
 # tables
