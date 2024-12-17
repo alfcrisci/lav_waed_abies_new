@@ -202,7 +202,7 @@ dati_sel_box=janitor::clean_names(dati_sel_box) # sanify names of compounds
 
 for ( i in 1:25) {  # looping by data columns
 
-ggboxplot(dati_sel_box,"species",names(dati_sel_box)[i],fill="red") 
+ggboxplot(dati_sel_box,"species",names(dati_sel_box)[i],fill="red") # + ylim = c(0, 30) # uncomment to force ordinate range
   
 ggsave(paste0("boxplot_",names(dati_sel_box)[i],".png"))
 
@@ -211,6 +211,7 @@ ggsave(paste0("boxplot_",names(dati_sel_box)[i],".png"))
 setwd("..") # exit of graphs dir
 
 ############################################################################################################################################
+# to generate some plot of compound prepare a list. see example.
 
 # my_plot_list=list(a,b,c)
 # ggexport(
