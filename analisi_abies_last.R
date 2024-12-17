@@ -1,5 +1,5 @@
 
-# install.packages(c("papeR","rtables","postHoc","scmamp","PMCMRplus")
+# install.packages(c("papeR","rtables","postHoc","PMCMRplus")
 
 ################################################################################
 # load libraries & set working directory & set random seeds
