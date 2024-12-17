@@ -84,7 +84,7 @@ CN(dati_sel_rel)
 multiCol(dati_sel_rel, graf = TRUE)
 
 ##########################################################################
-
+dati_sel_rel=dati_monosesquimiche
 X=dati_sel_rel # terpene relative matrix
 Y=dati_sel$Species
 
