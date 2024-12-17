@@ -131,35 +131,39 @@ write.xlsx(data.frame(a,compound_terpene=row.names(a)),"test_kruskal.wallis.xlsx
 
 ##########################################################################################################
 # Posthoc analisys after general kruskal wallis testing
+
 ##########################################################################################################
-# Posthoc analysis
+# Define list of results
 
 res_posthoc=list()
 res_posthoc_dunn=list()
 res_GG=list()
 
 #######################################################
+# fix pointer j to run on the columns starting fron numeric values
 
 j=1  
 
-for ( i in 2:29) { # run on the columns starting fron numeric values
+for ( i in 2:29) { 
   
-formula_t=paste(names(mat_final_rel)[i], "~ species + 0")
 
-MM=glm(formula_t,  data = mat_final_rel)
+ # not parametric way dunn test kruskal posthoc 
+ 
+dunn_df=as.data.frame(paste0(names(mat_final_rel[i])," ",capture.output(summary(kwAllPairsDunnTest(mat_final_rel[,i], factor(mat_final_rel$species),p.adjust.method = "bonferroni")))[2:4]))
+names(dunn_df)=c("Compound,Pair,Z,p_values,sign")
+res_posthoc_dunn[[j]]=dunn_df
 
+ # parametric way
+ 
+formula_t=paste(names(mat_final_rel)[i], "~ species + 0") # makeformula
+MM=glm(formula_t,  data = mat_final_rel) # parametric way
 GG <- posthoc(MM)
-
-
-res_posthoc_dunn[[j]]=paste0(names(mat_final_rel[i]),",",capture.output(summary(kwAllPairsDunnTest(mat_final_rel[,i], factor(mat_final_rel$species),p.adjust.method = "bonferroni")))[2:4])
-
 res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),
                             GG$CI,groups=GG$Grouping,
                             test_sp=gsub("species","",row.names(GG$PvaluesMatrix)),
-                            GG$PvaluesMatrix,
-                            ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species))
+                            GG$PvaluesMatrix)
                             )
-res_GG[[j]]=GG
+res_GG[[j]]=GG # store parametric posthoc
 
 j=j+1
 
@@ -168,10 +172,12 @@ j=j+1
 res_df=do.call("rbind",res_posthoc)
 res_df_dunn=do.call("rbind",res_posthoc_dunn)
 
-write.xlsx(list(res_df,res_df_dunn),"posthoc_kruskal.wallis.xlsx")
+
+write.xlsx(list(parametric=res_df,not_parametric=res_df_dunn),"posthoc_kruskal.wallis.xlsx")
+
 
 ##############################################################################################
-# tables
+# summary tables
 
 my_desc=psych::describeBy(mat_final_rel, mat_final_rel$species)
 
