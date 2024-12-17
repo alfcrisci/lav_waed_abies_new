@@ -5,7 +5,8 @@
 # load libraries & set working directory & set random seeds
 
 
-setwd("") # set up the directory where you have decompress  zip file.
+setwd("") # set up manually the directory where you have decompress  zip file. 
+
 ################################################################################
 
 source("load_libraries_abies.R")
@@ -14,7 +15,6 @@ library(papeR)
 library(rtables) # https://rookie.rbind.io/post/making-summary-tables-in-r
 library(data.table) 
 library(postHoc) # https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
-library(scmamp)
 library(PMCMRplus)
 
 #######################################################################################################
