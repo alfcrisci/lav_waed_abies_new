@@ -1,15 +1,28 @@
+################################################################################
+# Questo codice è un esercizio su analisi discriminante e per problemi di verifica di ipotesi di classificazione
 
-# install.packages(c("papeR","rtables","postHoc","PMCMRplus")
+
+################################################################################################
+# Fare un controllo sull'installazione dei seguenti pacchetti
+
+# install.packages(c("papeR","rtables","postHoc","PMCMRplus","readr","psych","janitor")
+
+# è possibile installazione manuale del pacchetto postHoc recente da un file postHoc1.4.tar.gz presente nella directory
+
 
 ################################################################################
-# load libraries & set working directory & set random seeds
+# Impostare la directory di lavoro  e i semi per le funzioni randomiche 
+# per assicurare la riproducibilità
 
 
-setwd("") # set up manually the directory where you have decompress  zip file. 
+setwd("C:\\aaa_lavori\\lav_waed_abies")
 
-################################################################################
+# setwd("")
 
-source("load_libraries_abies.R")
+set.seed(123)
+
+##########################################################################################################
+# caricamento dei pacchetti utilizzati nel codice
 
 library(papeR)
 library(rtables) # https://rookie.rbind.io/post/making-summary-tables-in-r
@@ -17,33 +30,37 @@ library(data.table)
 library(postHoc) # https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
 library(PMCMRplus)
 
-#######################################################################################################
-# set up seeds for reproducibility
-
-set.seed(123)
+source("load_libraries_abies.R")
 
 #######################################################################################################
-# clean console
+# pulisco la console da riga di comando
 
 cat("\014") 
 
 ################################################################################
-# load data from excel files
+# Carico 
 
-dati_sel=read.xlsx("dati_abies_GC.xlsx",1) # gc area profiles
+dati_sel=read.xlsx("dati_abies_GC.xlsx",1) # dati relativi alle analisi GC MS
 
-dati_seeds=read.xlsx("dati_abies_semi.xlsx",1) # seeds
+dati_seeds=read.xlsx("dati_abies_semi.xlsx",1) # dati relativi ai paraemtri morfologici dei semi
+
+
+cat("\014") 
 
 ################################################################################
-# row purging for outlier eye driven
+# eliminazione dei dati outlier e salvataggio su un file di archiviazione R formato rds 
 
 # dati_sel=dati_sel[-c(165,167,162,20,45),] 
 
 saveRDS(dati_sel,"dati_sel_abies.rds")
 
 ################################################################################
+# Visualizzazione della matrice di lavoro GC MS e dei  nomi delle variabili
 
-names(dati_sel)
+
+View(dati_sel) # vedere i dati 
+
+names(dati_sel)  # vedere i nomi delle matrici 
 
 # [1] "ID"                    "Species"               "date"                  "a-pinene"              "camphene"             
 # [6] "b-pinene"              "myrcene"               "Limonene"              "β-Phellandrene"        "g-terpinene"          
@@ -57,24 +74,30 @@ names(dati_sel)
 nrow(dati_sel) #  170
 
 #######################################################################################################
-# normalizing data
+# Normalizzazione dei dati sul totale dei mono&sesqui perchè parto dal dato delle aree
 
 dati_sel_rel=100*dati_sel[,4:31]/dati_sel$`TOT_mono&sesqui`
-mat_final_rel=data.frame(species=dati_sel$Species,dati_sel_rel)
-write.xlsx(mat_final_rel,"dati_relativi_totali.xlsx",overwrite = T) 
 
+mat_final_rel=data.frame(species=dati_sel$Species,dati_sel_rel)
+
+write.xlsx(mat_final_rel,"dati_relativi_totali.xlsx",overwrite = T) 
  
+# solo dei mono e dei sesqui separati
 dati_monosesqui=cbind(100*dati_sel[,4:18]/dati_sel$TOT_Mono,
                       100*dati_sel[,19:31]/(dati_sel$`TOT_mono&sesqui`-dati_sel$TOT_Mono))
+
+# solo dei mono e dei sesqui sommati per fare pesare meno i sesqui
 
 dati_monosesquimiche=cbind(100*dati_sel[,4:18]/dati_sel$TOT_Mono,
                            100*dati_sel[,19:31]/(dati_sel$`TOT_mono&sesqui`+dati_sel$TOT_Mono))
 
+# la scelta della normalizzazione dipende dalla situazione e dagli obbiettivi degli analisi
 
+###############################################################################################################################
+# controllo di collinearità opzionale in questo caso non utilizzato
 
 dati_sel_rel=dati_monosesquimiche
-#########################################################################################################################
-# collinaerity checking 
+
 CN(dati_sel_rel) # 
 multiCol(dati_sel_rel, graf = TRUE)
 names(dati_sel_rel)[c(20,16,23)]
@@ -84,22 +107,27 @@ CN(dati_sel_rel)
 multiCol(dati_sel_rel, graf = TRUE)
 
 ##########################################################################
-dati_sel_rel=dati_monosesquimiche
-X=dati_sel_rel # terpene relative matrix
+
+dati_sel_rel=dati_monosesquimiche # ignoro la multicollinearità ricaricando i dati normalizzati
+
+##########################################################################
+# Creazione delle matrici di analisi per PCA
+
+X=dati_sel_rel
 Y=dati_sel$Species
 
-#X=asin(sqrt(X/100)) # optional arcsine trasformation
+# X=asin(sqrt(X/100)) # eventuale trasfomazione dei dati normalizzati 
 
 
-Xseed=dati_seeds[,4:8] # morpho seeds  relative matrix
+Xseed=dati_seeds[,4:8]
 Yseed=dati_seeds$species
 
-###############################################################################
 write.xlsx(list(data.frame(Y,X),data.frame(Yseed,Xseed)),"dati_PCA.xlsx")
+
 cat("\014") 
 
-###############################################################################
-# PCA explore variable and outlier detection by using ordr R packages
+#########################################################################################
+# PCA explore variable and outlier detection
 
 data_pca=data.frame(X,Species=Y)
 
@@ -120,9 +148,9 @@ ggsave("PCA_biplot.png")
 
 
 #########################################################################################
-# data selection by non parametric ANOVA ( ---> kruskal wallis optional) 
+# data selection by non parametric ANOVA o Kruskal Wallis ( optional) 
 
-a=col_kruskalwallis(X,Y) # by using matrixTests R package
+a=col_kruskalwallis(X,Y) # uso il pacchetto MatrixTests
 
 row.names(a)[which(a$pvalue<0.05)] # all coumpound discriminate!
 row.names(a)[which(a$pvalue>0.05)] 
@@ -130,40 +158,36 @@ row.names(a)[which(a$pvalue>0.05)]
 write.xlsx(data.frame(a,compound_terpene=row.names(a)),"test_kruskal.wallis.xlsx")
 
 ##########################################################################################################
-# Posthoc analisys after general kruskal wallis testing
-
-##########################################################################################################
-# Define list of results
+# Faccio la Posthoc analysis
 
 res_posthoc=list()
 res_posthoc_dunn=list()
 res_GG=list()
 
 #######################################################
-# fix pointer j to run on the columns starting fron numeric values
 
 j=1  
 
-for ( i in 2:29) { 
+for ( i in 2:29) { # run on the columns starting fron numeric values
   
+formula_t=paste(names(mat_final_rel)[i], "~ species + 0")
 
- # not parametric way dunn test kruskal posthoc 
- 
-dunn_df=as.data.frame(paste0(names(mat_final_rel[i])," ",capture.output(summary(kwAllPairsDunnTest(mat_final_rel[,i], factor(mat_final_rel$species),p.adjust.method = "bonferroni")))[2:4]))
-names(dunn_df)=c("Compound,Pair,Z,p_values,sign")
-res_posthoc_dunn[[j]]=dunn_df
+MM=glm(formula_t,  data = mat_final_rel)
 
- # parametric way
- 
-formula_t=paste(names(mat_final_rel)[i], "~ species + 0") # makeformula
-MM=glm(formula_t,  data = mat_final_rel) # parametric way
 GG <- posthoc(MM)
+
+
+dunn_df=as.data.frame(gsub("\\s+", " ", paste0(names(mat_final_rel[i])," ",capture.output(summary(kwAllPairsDunnTest(mat_final_rel[,i], factor(mat_final_rel$species),p.adjust.method = "bonferroni")))[2:4])))
+
+names(dunn_df)=c("Compound Pair Z p_values sign")
+res_posthoc_dunn[[j]]=dunn_df
 res_posthoc[[j]]=data.frame(terpene_compound=names(mat_final_rel[i]),
                             GG$CI,groups=GG$Grouping,
                             test_sp=gsub("species","",row.names(GG$PvaluesMatrix)),
-                            GG$PvaluesMatrix)
+                            GG$PvaluesMatrix,
+                            ks_pval=KruskalWallisAllPvalues(mat_final_rel[,i], factor(mat_final_rel$species))
                             )
-res_GG[[j]]=GG # store parametric posthoc
+res_GG[[j]]=GG
 
 j=j+1
 
@@ -172,18 +196,14 @@ j=j+1
 res_df=do.call("rbind",res_posthoc)
 res_df_dunn=do.call("rbind",res_posthoc_dunn)
 
-
-write.xlsx(list(parametric=res_df,not_parametric=res_df_dunn),"posthoc_kruskal.wallis.xlsx")
-
+write.xlsx(list(dunn_test=res_df_dunn,t_test=res_df),"posthoc_kruskal.wallis.xlsx")
 
 ##############################################################################################
 # summary tables
 
-my_desc=psych::describeBy(mat_final_rel, mat_final_rel$species)
+my_desc=psych::describeBy(mat_final_rel[,-1], mat_final_rel$species)
 
 readr::write_excel_csv2(rbindlist(my_desc, idcol = 'species'), file = 'summary_terpene_by_species.xlsx')
-
-
 
 
 ######################################################################################
@@ -191,27 +211,23 @@ readr::write_excel_csv2(rbindlist(my_desc, idcol = 'species'), file = 'summary_t
 
 dir.create("boxplot")
 
-setwd("boxplot")  # inside of graphs dir
+setwd("boxplot")
 
 dati_sel_box=dati_sel_rel
-
 dati_sel_box$Species=factor(dati_sel$Species)
+dati_sel_box=janitor::clean_names(dati_sel_box) # pulisco i nomi
 
-dati_sel_box=janitor::clean_names(dati_sel_box) # sanify names of compounds
+for ( i in 1:25) {
 
-
-for ( i in 1:25) {  # looping by data columns
-
-ggboxplot(dati_sel_box,"species",names(dati_sel_box)[i],fill="red") # + ylim = c(0, 30) # uncomment to force ordinate range
+ggboxplot(dati_sel_box,"species",names(dati_sel_box)[i],fill="red") +ylim(0,50)
   
 ggsave(paste0("boxplot_",names(dati_sel_box)[i],".png"))
 
 }
 
-setwd("..") # exit of graphs dir
+setwd("..")
 
-############################################################################################################################################
-# to generate some plot of compound prepare a list. see example.
+
 
 # my_plot_list=list(a,b,c)
 # ggexport(
@@ -220,18 +236,17 @@ setwd("..") # exit of graphs dir
 # )
 
 
-##########################################################################################################################################
+####################################################################################
 # Ordination Supervised methods : LDA & & KNN
 
 # LDA
-
 # Prior probabilities of groups: the proportion of training observations in each group. For example, there are 31% of the training observations in the setosa group
 # Group means: group center of gravity. Shows the mean of each variable in each group.
 # Coefficients of linear discriminants: Shows the linear combination of predictor variables that are used to form the LDA d
 
-###########################################################################################################################################
+#########################################################################
 
-training.samples <- Y %>% createDataPartition(p = 0.8, list = FALSE) # create training (80%) and test (20%) sets 
+training.samples <- Y %>% createDataPartition(p = 0.8, list = FALSE)
 
 dati_train=X[training.samples, ]
 dati_test=X[-training.samples, ]
@@ -265,7 +280,6 @@ abies_lda %>%
   ggtitle("Standardized coefficient biplot of mediterranean Abies spp. ") +
   expand_limits(y = c(-3, 5))+
   labs(color = "Species")
-
 ggsave("LDA_biplot.png")
 
 ################################################################################
@@ -280,34 +294,32 @@ test_pred <- class::knn(
 res_knn_abiesGC=confusionMatrix(test_pred,factor(dati_test$Y))
 
 ################################################################################
+# Ora sto lavorando sui dati dei semi
 
 
-################################################################################
-# testing stratification morfo seeds
-
-col_oneway_welch(Xseed, Yseed) # by using matrixTests R package
+col_oneway_welch(Xseed, Yseed) # utilizzo il pacchetto MatrixTests per fare l'ANOVA a 1 via 
 
 summarySE(Xseed,"length","Yseed")
 summarySE(Xseed,"mc","Yseed") 
 summarySE(Xseed,"weight100","Yseed") 
 summarySE(Xseed,"length","Yseed") 
 summarySE(Xseed,"width","Yseed")
+
 X=Xseed
 Y=Yseed
 
 ################################################################################
-# PCA Unsupervised
+# PCA
 
 ord <- PCA(Xseed, graph = FALSE)
 ggord(ord, Yseed,arrow=NULL,txt=NULL)
 
 ################################################################################
-# linear DA Supervised
+# linear DA 
 
 heplots::boxM(X, Y)
 
-training.samples <- Y %>% createDataPartition(p = 0.8, list = FALSE) # create training (80%) and test (20%) sets 
-
+training.samples <- Y %>% createDataPartition(p = 0.8, list = FALSE)
 dati_train=X[training.samples, ]
 dati_test=X[-training.samples, ]
 dati_test$Y=Y[-training.samples]
@@ -329,8 +341,7 @@ ggord(model, Y[training.samples],
 
 #####################################################################
 # References
-# https://cran.r-project.org/web/packages/postHoc/vignettes/Post-hoc-analysis.html
-# https://www.geeksforgeeks.org/how-to-perform-post-hoc-test-for-kruskal-wallis-in-r/
+
 # https://cmdlinetips.com/2020/12/canonical-correlation-analysis-in-r/
 # https://www.r-bloggers.com/2021/05/linear-discriminant-analysis-in-r/
 # https://vitalflux.com/pca-vs-lda-differences-plots-examples/
